@@ -1,0 +1,17 @@
+img {
+    width: 50px;
+    margin: 5px;
+}
+
+.my-cards {
+    width: 180px;
+}
+
+.deck-border {
+    border-right: 1px solid black;
+}
+
+.deck-border:nth-last-child(1) {
+    border-right: none;
+    
+}
