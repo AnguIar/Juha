@@ -57,9 +57,18 @@ class Game extends Component {
             this.setState({ cardRequested });
         });
 
+        socket.on('card_invalid', () => {
+            alert('You can\'t send a card you do not own.');
+        });
+
         socket.on('end', ({ winner, loser }) => {
             console.log(winner, loser)
             alert(`Winner: ${winner}, Loser: ${loser}`);
+        });
+
+        socket.on('player_disconnect', player => {
+            alert(`player ${player.name} has disconnected. quitting...`);
+            window.location.reload();
         });
     }
 
@@ -71,6 +80,7 @@ class Game extends Component {
     getNames = () => {
         return (
             <div>
+                Players in room: <br />
                 {
                     this.state.users.map(e => e.name).join(', ')
                 }
@@ -143,7 +153,7 @@ class Game extends Component {
                     {
                         this.state.user && this.state.otherUsers ?
                             <div className="text-center">
-                                <Row>
+                                <Row className="mb-5">
                                     {
                                         this.state.otherUsers.map(user =>
                                             <Col className="deck-border" key={user.id}>
@@ -165,20 +175,24 @@ class Game extends Component {
                                         <h4>{this.state.user.name} (You) {this.getUserRole(this.state.user.id)}</h4>
                                     </Col>
                                     <Col>
-                                        {
-                                            this.state.user.cards.map((card, index) =>
-                                                <img className="my-cards"
-                                                    src={this.getImage(card)} onClick={this.dealCard} key={index} alt={card} />
-                                            )
-                                        }
+                                        <Row>
+                                            {
+                                                this.state.user.cards.map((card, index) =>
+                                                    <Col key={index}>
+                                                        <img className="my-cards"
+                                                            src={this.getImage(card)} onClick={this.dealCard} alt={card} />
+                                                    </Col>
+                                                )
+                                            }
+                                        </Row>
                                     </Col>
                                 </Row>
                                 {
                                     this.state.userPlaying === this.state.user.id &&
                                     <Row>
                                         <Col>
-                                            <Button disabled={this.state.cardRequested}
-                                                onClick={this.requestCard}>Request Card</Button>
+                                            <Button variant="success" disabled={this.state.cardRequested}
+                                                onClick={this.requestCard} block>Request Card</Button>
                                         </Col>
                                     </Row>
                                 }
@@ -201,16 +215,20 @@ class Game extends Component {
                                 }
                             </div>
                             :
-                            <div>
+                            <div className="before-game">
                                 {this.getNames()}
                                 {
                                     this.state.users.length < MIN_PLAYERS_FOR_GAME ?
-                                        `Waiting for 
-                                ${MIN_PLAYERS_FOR_GAME - this.state.users.length}
-                                 more players to start...`
+                                        <p>
+                                            Waiting for {MIN_PLAYERS_FOR_GAME - this.state.users.length} more players to start...
+                                        </p>
                                         :
-                                        this.state.users[0].id === this.state.user.id &&
-                                        <Button onClick={this.startGame}>start</Button>
+                                        this.state.users[0].id === this.state.user.id ?
+                                            <Button variant="danger" block onClick={this.startGame}>Start</Button>
+                                            :
+                                            <p>
+                                                Waiting for lobby manager <strong className="text-danger">{this.state.users[0].name}</strong>...
+                                            </p>
                                 }
                             </div>
                     }

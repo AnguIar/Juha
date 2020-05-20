@@ -1,6 +1,7 @@
 import React from 'react';
 import Game from './Game.jsx'
-import { Container, Button } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
+import './app.css'
 
 class App extends React.Component {
 
@@ -29,19 +30,56 @@ class App extends React.Component {
     }
   }
 
+  randomNames = () => {
+    const nicks = [
+      'x_N1993R_x',
+      'TMitocohondria',
+      'THC2014',
+      'Li5a 4nn',
+      'rolory',
+      'KoalaKingZ',
+      'BioDick',
+      'Take a WinBlow'
+    ]
+
+    return nicks[Math.floor(Math.random() * nicks.length)];
+  }
+
+  juhaImage = () => {
+    return <img src={require('./cards/0.png')} className="juha" alt="Juha!" />
+  }
+
   render() {
     return (
-      <Container onKeyDown={this.captureEnter}>
+      <div className="d-flex w-100 h-100 p-3 flex-column">
         {
           this.state.joined ?
-            <Game name={this.state.name} quitToMain={this.quit} />
+            <React.Fragment>
+              <div className="text-center mb-5"></div>
+              <div className="p-3">
+                <Game name={this.state.name} quitToMain={this.quit} />
+              </div>
+              <div className="mt-auto text-center">
+                <img src={require('./cards/0.png')} className="juha joined" alt="Juha!" />
+              </div>
+            </React.Fragment>
             :
-            <div>
-              Your name: <input type="text" id="name" onChange={e => this.setState({ name: e.target.value })} /> <br />
-              <Button onClick={this.enter}>Enter</Button>
-            </div>
+            <React.Fragment>
+              <div className="text-center mb-5">
+                <img src={require('./cards/0.png')} className="juha" alt="Juha!" />
+              </div>
+              <div className="p-3">
+                <Form.Group>
+                  <Form.Control size="lg" type="text" placeholder={this.randomNames()} onChange={e => this.setState({ name: e.target.value })} />
+                </Form.Group>
+                <Form.Group>
+                  <Button variant="danger" onClick={this.enter} block>Enter</Button>
+                </Form.Group>
+              </div>
+              <div className="mt-auto"></div>
+            </React.Fragment>
         }
-      </Container>
+      </div>
     )
   }
 }

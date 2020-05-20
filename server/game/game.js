@@ -9,6 +9,10 @@ function Game(players = []) {
     this.cardsOnTable = [];
 }
 
+Game.prototype.findPlayerById = function (_id) {
+    return this.players.find(({ id }) => id === _id);
+}
+
 Game.prototype.addPlayer = function (id, _name) {
     const nameTaken = this.players.find(({ name }) => name === _name);
     if (nameTaken)
@@ -98,11 +102,17 @@ Game.prototype.dealCardsToPlayers = function () {
 }
 
 Game.prototype.addCardsToTable = function (card) {
-    this.cardsOnTable.push(card);
-    this.players[this.currentPlayerDealing].removeCard(card);
+    const cardExists = this.players[this.currentPlayerDealing].cards.indexOf(card);
+
+    if (cardExists !== -1) {
+        this.cardsOnTable.push(card);
+        this.players[this.currentPlayerDealing].removeCard(card);
+        return true;
+    }
+    return false;
 }
 
-Game.prototype.clonePlayers = function() {
+Game.prototype.clonePlayers = function () {
     return this.players.map(player => player.clone());
 }
 
@@ -114,7 +124,7 @@ Game.prototype.otherPlayers = function (_id) {
     return players;
 }
 
-Game.prototype.disconnect = function() {
+Game.prototype.disconnect = function () {
     this.players = [];
 }
 

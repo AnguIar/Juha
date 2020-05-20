@@ -1,17 +1,29 @@
 img {
     width: 50px;
     margin: 5px;
+    border-radius: 5px;
 }
 
 .my-cards {
     width: 180px;
+    box-shadow: 1px -1px 1px black;
+    background: #fff;
+    cursor:pointer;
+}
+
+.my-cards:hover {
+    background-color: #e5e5e5;
 }
 
 .deck-border {
-    border-right: 1px solid black;
+    border-right: 2px solid white;
 }
 
 .deck-border:nth-last-child(1) {
     border-right: none;
-    
+}
+
+.before-game {
+    font-size: 20px;
+    color: #fff;
 }

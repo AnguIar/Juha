@@ -52,12 +52,19 @@ const webSocketIO = (io) => {
         });
 
         socket.on('card_deal', cardValue => {
-            game.addCardsToTable(cardValue);
-            socket.emit('table_cards', game.cardsOnTable);
-            dealCards(game.players[game.currentPlayerDealing]);
-            socket.broadcast.emit('table_cards', game.cardsOnTable.map((e, i) => `card #${i}`));
-            io.emit('premission_to_deal', false);
-            refreshOthers();
+            const cardValid = game.addCardsToTable(cardValue);
+
+            if (cardValid) {
+                socket.emit('table_cards', game.cardsOnTable);
+                dealCards(game.players[game.currentPlayerDealing]);
+                socket.broadcast.emit('table_cards', game.cardsOnTable.map((e, i) => `card #${i}`));
+                io.emit('premission_to_deal', false);
+                refreshOthers();
+            }
+
+            else {
+                socket.emit('card_invalid');
+            }
         });
 
         socket.on('player_deal', (cardIndex) => {
@@ -76,8 +83,11 @@ const webSocketIO = (io) => {
         });
 
         socket.on('disconnect', () => {
-            game.removePlayer(socket.id);
+            const dcPlayer = game.findPlayerById(socket.id);
+            socket.broadcast.emit('player_disconnect', dcPlayer);
+            game.disconnect();
             refreshOthers();
+            // refreshUsers();
         });
     });
 }

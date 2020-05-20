@@ -1,0 +1,57 @@
+html, body {
+  height: 100%;
+  background-color: #1c1f23!important;
+  color: #fff !important;
+}
+
+#root {
+  margin: 0 auto;
+}
+
+body {
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.cover-container {
+  max-width: 42em;
+}
+
+.juha {
+  box-shadow: 11px -6px 1px black;
+  transform: rotate(35deg);
+  width: auto;
+  background: #fff!important;
+  animation-name: glow;
+  animation-duration: 2500ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-direction: alternate;
+}
+
+.joined {
+  width: 120px;
+  animation-name: spin;
+  animation-duration: 5000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-direction: normal;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: none;
+  }
+  to {
+    box-shadow: 11px -6px 1px white;
+  }
+}
