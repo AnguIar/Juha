@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
-import { Row, Col, Button, Alert } from 'react-bootstrap'
+import { Row, Col, Button } from 'react-bootstrap'
 import './game.css';
+import Toast from './Toast.jsx';
+import GameEnded from './GameEnded.jsx';
 
 let socket;
 
@@ -14,7 +16,10 @@ class Game extends Component {
         cardsDealt: [],
         userPlaying: null,
         userDealing: null,
-        cardRequested: false
+        cardRequested: false,
+        toast: false,
+        winner: null,
+        loser: null
     }
 
     componentDidMount() {
@@ -54,16 +59,15 @@ class Game extends Component {
         });
 
         socket.on('premission_to_deal', cardRequested => {
-            this.setState({ cardRequested });
-        });
+            let toast = false;
+            if (cardRequested)
+                toast = true;
 
-        socket.on('card_invalid', () => {
-            alert('You can\'t send a card you do not own.');
+            this.setState({ cardRequested, toast });
         });
 
         socket.on('end', ({ winner, loser }) => {
-            console.log(winner, loser)
-            alert(`Winner: ${winner}, Loser: ${loser}`);
+            this.setState({ winner, loser });
         });
 
         socket.on('player_disconnect', player => {
@@ -101,31 +105,32 @@ class Game extends Component {
         }
     }
 
-    dealCard = (event) => {
+    dealCard = (event, index) => {
         if (this.state.userDealing !== this.state.user.id)
             event.preventDefault();
 
         else {
             if (this.state.cardRequested) {
-                const cardValue = Number(event.target.alt);
+                const cardValue = this.state.user.cards[index];
                 socket.emit('card_deal', cardValue);
             }
         }
     }
 
-    recieveCard = (event) => {
+    recieveCard = (event, index) => {
         if (this.state.userPlaying !== this.state.user.id) {
             event.preventDefault();
         }
 
         else {
-            const cardIndex = event.target.alt.replace(/^\D+/g, '');
-            socket.emit('player_deal', Number(cardIndex));
+            socket.emit('player_deal', index);
         }
     }
 
     getImage = (card) => {
-        return require('./cards/' + card + '.png');
+        const URL = `http://localhost:5000/`;
+        const ending = '.png';
+        return URL + card + ending;
     }
 
     getRivalCards = (cards) => {
@@ -144,6 +149,17 @@ class Game extends Component {
             return <span className="bg-success text-white">PLAYING</span>
     }
 
+    toggleToast = (toast) => {
+        this.setState({ toast });
+    }
+
+    gameEnded = () => {
+        return (
+            this.state.winner &&
+            this.state.loser
+        )
+    }
+
     render() {
         const MIN_PLAYERS_FOR_GAME = 3;
 
@@ -152,84 +168,103 @@ class Game extends Component {
                 <React.Fragment>
                     {
                         this.state.user && this.state.otherUsers ?
-                            <div className="text-center">
-                                <Row className="mb-5">
+                            this.gameEnded() ?
+                                <GameEnded loser={this.state.loser} winner={this.state.winner}
+                                    users={this.state.users} />
+                                :
+                                <div className="text-center">
                                     {
-                                        this.state.otherUsers.map(user =>
-                                            <Col className="deck-border" key={user.id}>
-                                                <h4>
-                                                    {user.name}{' '}
-                                                    {
-                                                        this.getUserRole(user.id)
-                                                    }
-                                                </h4>
-                                                <div>
-                                                    {this.getRivalCards(user.cards)}
-                                                </div>
+                                        this.state.cardRequested &&
+                                        <Row className="m-3">
+                                            <Col>
+                                                <Toast show={this.state.toast} setShow={this.toggleToast}
+                                                    message={`Card #${this.state.cardsDealt.length + 1} Requested!`} />
                                             </Col>
-                                        )
-                                    }
-                                </Row>
-                                <Row className="flex-column">
-                                    <Col>
-                                        <h4>{this.state.user.name} (You) {this.getUserRole(this.state.user.id)}</h4>
-                                    </Col>
-                                    <Col>
-                                        <Row>
-                                            {
-                                                this.state.user.cards.map((card, index) =>
-                                                    <Col key={index}>
-                                                        <img className="my-cards"
-                                                            src={this.getImage(card)} onClick={this.dealCard} alt={card} />
-                                                    </Col>
-                                                )
-                                            }
                                         </Row>
-                                    </Col>
-                                </Row>
-                                {
-                                    this.state.userPlaying === this.state.user.id &&
+                                    }
+                                    <Row className="mb-5">
+                                        {
+                                            this.state.otherUsers.map(user =>
+                                                <Col className="deck-border" key={user.id}>
+                                                    <h4>
+                                                        {user.name}{' '}
+                                                        {
+                                                            this.getUserRole(user.id)
+                                                        }
+                                                    </h4>
+                                                    <div>
+                                                        {this.getRivalCards(user.cards)}
+                                                    </div>
+                                                </Col>
+                                            )
+                                        }
+                                    </Row>
+                                    <Row className="flex-column">
+                                        <Col>
+                                            <h4>{this.state.user.name} (You) {this.getUserRole(this.state.user.id)}</h4>
+                                        </Col>
+                                        <Col>
+                                            <Row>
+                                                {
+                                                    this.state.user.cards.map((card, index) =>
+                                                        <Col key={index}>
+                                                            <img className="my-cards"
+                                                                src={this.getImage(card)} onClick={(e) => this.dealCard(e, index)}
+                                                                alt={`My Card`} />
+                                                        </Col>
+                                                    )
+                                                }
+                                            </Row>
+                                        </Col>
+                                    </Row>
+                                    {
+                                        this.state.userPlaying === this.state.user.id &&
+                                        <Row>
+                                            <Col>
+                                                <Button variant="success" disabled={this.state.cardRequested}
+                                                    onClick={this.requestCard} block>Request Card</Button>
+                                            </Col>
+                                        </Row>
+                                    }
                                     <Row>
                                         <Col>
-                                            <Button variant="success" disabled={this.state.cardRequested}
-                                                onClick={this.requestCard} block>Request Card</Button>
+                                            {this.state.cardsDealt.map((card, index) =>
+                                                <img src={this.getImage('back')} className="my-cards"
+                                                    onClick={(e) => this.recieveCard(e, index)} key={index}
+                                                    alt={card}
+                                                />
+                                            )}
                                         </Col>
                                     </Row>
-                                }
-                                <Row>
-                                    <Col>
-                                        {this.state.cardsDealt.map((card, index) =>
-                                            <img src={this.getImage('back')} className="my-cards" onClick={this.recieveCard} key={index} alt={card} />
-                                        )}
-                                    </Col>
-                                </Row>
-                                {
-                                    this.state.cardRequested &&
-                                    <Row className="mt-3">
-                                        <Col>
-                                            <Alert variant="info">
-                                                Card <strong>#{this.state.cardsDealt.length + 1}</strong> Requested!
-                                           </Alert>
-                                        </Col>
-                                    </Row>
-                                }
-                            </div>
+                                </div>
                             :
-                            <div className="before-game">
+                            <div className="before-game text-center">
                                 {this.getNames()}
-                                {
-                                    this.state.users.length < MIN_PLAYERS_FOR_GAME ?
-                                        <p>
-                                            Waiting for {MIN_PLAYERS_FOR_GAME - this.state.users.length} more players to start...
-                                        </p>
-                                        :
-                                        this.state.users[0].id === this.state.user.id ?
-                                            <Button variant="danger" block onClick={this.startGame}>Start</Button>
-                                            :
-                                            <p>
-                                                Waiting for lobby manager <strong className="text-danger">{this.state.users[0].name}</strong>...
+                                <div>
+                                    {
+                                        this.state.users.length < MIN_PLAYERS_FOR_GAME ?
+                                            <p className="mb-5">
+                                                Waiting for {MIN_PLAYERS_FOR_GAME - this.state.users.length} more players to start...
                                             </p>
-                                }
+                                            :
+                                            <div>
+                                                <div className="mb-5">
+                                                    {
+                                                        this.state.users[0].id === this.state.user.id ?
+                                                            <Button variant="danger" block onClick={this.startGame}>Start</Button>
+                                                            :
+                                                            <p>
+                                                                Waiting for lobby manager <strong className="text-danger">{this.state.users[0].name}</strong>...
+                                                    </p>
+                                                    }
+                                                </div>
+                                            </div>
+                                    }
+                                    <div>
+                                        <img src={this.getImage('0')} className="juha joined"
+                                            alt="Juha!" />
+                                    </div>
+                                </div>
                             </div>
                     }
                 </React.Fragment>

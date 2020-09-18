@@ -24,7 +24,18 @@ const webSocketIO = (io) => {
 
         const dealCards = (player) => {
             io.to(player.id).emit('deal_cards', player.cards);
+        }
 
+        const checkEnd = () => {
+            // const { winner, loser } = game.checkEnd();
+
+            const winner = 'x';
+            const loser = 'y';
+
+            if (winner) {
+                io.emit('end', { winner, loser });
+                refreshUsers();
+            }
         }
 
         socket.on('join', ({ name }, callback) => {
@@ -45,6 +56,7 @@ const webSocketIO = (io) => {
             });
             refreshOthers();
             emitTurns();
+            checkEnd();
         });
 
         socket.on('request_card', () => {
@@ -52,19 +64,13 @@ const webSocketIO = (io) => {
         });
 
         socket.on('card_deal', cardValue => {
-            const cardValid = game.addCardsToTable(cardValue);
+            game.addCardsToTable(cardValue);
+            socket.emit('table_cards', game.cardsOnTable);
+            dealCards(game.players[game.currentPlayerDealing]);
+            socket.broadcast.emit('table_cards', game.cardsOnTable.map((e, i) => `card #${i}`));
+            io.emit('premission_to_deal', false);
+            refreshOthers();
 
-            if (cardValid) {
-                socket.emit('table_cards', game.cardsOnTable);
-                dealCards(game.players[game.currentPlayerDealing]);
-                socket.broadcast.emit('table_cards', game.cardsOnTable.map((e, i) => `card #${i}`));
-                io.emit('premission_to_deal', false);
-                refreshOthers();
-            }
-
-            else {
-                socket.emit('card_invalid');
-            }
         });
 
         socket.on('player_deal', (cardIndex) => {
@@ -76,10 +82,7 @@ const webSocketIO = (io) => {
             io.emit('table_cards', game.cardsOnTable);
             io.emit('premission_to_deal', false);
             refreshOthers();
-            const { winner, loser } = game.checkEnd();
-
-            if (winner)
-                io.emit('end', { winner, loser });
+            checkEnd();
         });
 
         socket.on('disconnect', () => {
@@ -87,7 +90,6 @@ const webSocketIO = (io) => {
             socket.broadcast.emit('player_disconnect', dcPlayer);
             game.disconnect();
             refreshOthers();
-            // refreshUsers();
         });
     });
 }

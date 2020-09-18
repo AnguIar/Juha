@@ -30,23 +30,26 @@ class App extends React.Component {
     }
   }
 
-  randomNames = () => {
+  randomName = () => {
     const nicks = [
-      'x_N1993R_x',
+      'N1993R',
       'TMitocohondria',
       'THC2014',
-      'Li5a 4nn',
       'rolory',
       'KoalaKingZ',
       'BioDick',
-      'Take a WinBlow'
+      'Take a WinBlow',
+      'F4990T',
+      'MyKogInUrViJanna'
     ]
 
     return nicks[Math.floor(Math.random() * nicks.length)];
   }
 
-  juhaImage = () => {
-    return <img src={require('./cards/0.png')} className="juha" alt="Juha!" />
+  getImage = (card) => {
+    const URL = `http://localhost:5000/`;
+    const ending = '.png';
+    return URL + card + ending;
   }
 
   render() {
@@ -59,26 +62,24 @@ class App extends React.Component {
               <div className="p-3">
                 <Game name={this.state.name} quitToMain={this.quit} />
               </div>
-              <div className="mt-auto text-center">
-                <img src={require('./cards/0.png')} className="juha joined" alt="Juha!" />
-              </div>
             </React.Fragment>
             :
             <React.Fragment>
               <div className="text-center mb-5">
-                <img src={require('./cards/0.png')} className="juha" alt="Juha!" />
+                <img src={this.getImage('0')} className="juha" alt="Juha!" />
               </div>
               <div className="p-3">
                 <Form.Group>
-                  <Form.Control size="lg" type="text" placeholder={this.randomNames()} onChange={e => this.setState({ name: e.target.value })} />
+                  <Form.Control size="lg" type="text" placeholder={this.randomName()}
+                    onChange={e => this.setState({ name: e.target.value })} />
                 </Form.Group>
                 <Form.Group>
                   <Button variant="danger" onClick={this.enter} block>Enter</Button>
                 </Form.Group>
               </div>
-              <div className="mt-auto"></div>
             </React.Fragment>
         }
+        <div className="mt-auto"> </div>
       </div>
     )
   }

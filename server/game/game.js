@@ -102,14 +102,8 @@ Game.prototype.dealCardsToPlayers = function () {
 }
 
 Game.prototype.addCardsToTable = function (card) {
-    const cardExists = this.players[this.currentPlayerDealing].cards.indexOf(card);
-
-    if (cardExists !== -1) {
-        this.cardsOnTable.push(card);
-        this.players[this.currentPlayerDealing].removeCard(card);
-        return true;
-    }
-    return false;
+    this.cardsOnTable.push(card);
+    this.players[this.currentPlayerDealing].removeCard(card);
 }
 
 Game.prototype.clonePlayers = function () {
