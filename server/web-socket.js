@@ -27,10 +27,7 @@ const webSocketIO = (io) => {
         }
 
         const checkEnd = () => {
-            // const { winner, loser } = game.checkEnd();
-
-            const winner = 'x';
-            const loser = 'y';
+            const { winner, loser } = game.checkEnd();
 
             if (winner) {
                 io.emit('end', { winner, loser });

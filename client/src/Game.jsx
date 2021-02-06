@@ -170,7 +170,7 @@ class Game extends Component {
                         this.state.user && this.state.otherUsers ?
                             this.gameEnded() ?
                                 <GameEnded loser={this.state.loser} winner={this.state.winner}
-                                    users={this.state.users} />
+                                    users={this.state.users} getCards={this.getImage} />
                                 :
                                 <div className="text-center">
                                     {

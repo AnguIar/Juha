@@ -14,7 +14,13 @@ class GameEnded extends Component {
                                         <h4>{user.name}</h4>
                                     </Col>
                                     <Col>
-                                        {this.props.getCards(user.cards)}
+                                        <Row>
+                                            {user.cards.map(card => 
+                                                <Col>
+                                                    <img src={this.props.getCards(card)} />
+                                                </Col>
+                                            )}
+                                        </Row>
                                     </Col>
                                 </Row>
                             </Col>
